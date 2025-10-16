@@ -1,0 +1,92 @@
+[
+  {
+    "workspace": "NATIXIS - NXV69 - Global Treasury Power Bi Dashboard",
+    "report": "Report Usage Metrics Report",
+    "report_url": "https://app.powerbi.com/groups/48e81cc1-bd8c-42c9-88b9-89b79ec3fece/reports/df3d477d-bb33-4472-bfdf-5f56b766a91d",
+    "pages": [
+      {
+        "name": "Usage Report"
+      }
+    ]
+  },
+  {
+    "workspace": "NATIXIS - NXV69 - Global Treasury Power Bi Dashboard",
+    "report": "APAC Treasury – SICA",
+    "report_url": "https://app.powerbi.com/groups/48e81cc1-bd8c-42c9-88b9-89b79ec3fece/reports/a6f10af4-633d-4cfd-b527-566b1cbb3244",
+    "pages": [
+      {
+        "name": "Link Account / Relationship manager "
+      },
+      {
+        "name": "Home"
+      },
+      {
+        "name": "WORKING TAB"
+      },
+      {
+        "name": "Average balance by Cust"
+      },
+      {
+        "name": "Average balance by Cust-top"
+      },
+      {
+        "name": "Average balance- Extract"
+      },
+      {
+        "name": "ST diversification Funding"
+      },
+      {
+        "name": "Flows BM view"
+      },
+      {
+        "name": "Comparison by date"
+      },
+      {
+        "name": "Flows"
+      },
+      {
+        "name": "Overview"
+      },
+      {
+        "name": "Client Behavior"
+      },
+      {
+        "name": "Cap"
+      },
+      {
+        "name": "Opened & Closed Accounts"
+      },
+      {
+        "name": "Concentration"
+      }
+    ]
+  },
+  {
+    "workspace": "NATIXIS - NXV69 - Global Treasury Power Bi Dashboard",
+    "report": "CD-CP Outstandings",
+    "report_url": "https://app.powerbi.com/groups/48e81cc1-bd8c-42c9-88b9-89b79ec3fece/reports/4ec55a1a-2902-4af5-860a-bd740291db8f",
+    "pages": [
+      {
+        "name": "Aggregate by Limit "
+      },
+      {
+        "name": "Test pour Jean Marc"
+      },
+      {
+        "name": "Aggregate EUR Equiv"
+      },
+      {
+        "name": "Aggregate in CCY"
+      },
+      {
+        "name": "Historical Graph by Product"
+      },
+      {
+        "name": "Historical Graph by Issuer"
+      },
+      {
+        "name": "Historical Graph by Category or McDo"
+      },
+      {
+        "name": "Historical Chart €"
+      },
