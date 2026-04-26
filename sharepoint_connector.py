@@ -1,43 +1,56 @@
-import io
+"""Optional SharePoint Online client (Microsoft Graph API).
+
+Used only when ``USE_SHAREPOINT=true`` is set in the environment. For local
+development, ``glossary_loader.py`` reads/writes Excel files from the
+``data/glossaries/`` directory instead.
+"""
 import os
-from typing import Any, Iterator, Tuple
-import openpyxl
-from openpyxl import Workbook
 from io import BytesIO
+from typing import Iterator, Tuple
+
+import openpyxl
+import pandas as pd
 import requests
 from dotenv import load_dotenv
-import tempfile
-import pandas as pd
 
-load_dotenv()  # Load environment variables from .env file
-
-# Environment variables
-SHAREPOINT_CLIENT_ID = os.environ.get("sharepoint-client-id")
-SHAREPOINT_CLIENT_SECRET = os.environ.get("sharepoint-client-secret")
-SHAREPOINT_TENANT_ID = os.environ.get("sharepoint-tenant-id")
-SITE_RELATIVE_PATH = "/sites/IAForFinance"
+load_dotenv()
 
 
 class SharePointClient:
-    """
-    SharePointClient provides methods to interact with SharePoint Online via the Microsoft Graph API.
-    This client is designed to manage authentication, file operations, and folder management.
-    """
+    """Minimal SharePoint Online client (auth + read/write of files)."""
 
     def __init__(self) -> None:
-        """ Initializes the SharePoint client. """
-        self.client_id = SHAREPOINT_CLIENT_ID
-        self.client_secret = SHAREPOINT_CLIENT_SECRET
-        self.tenant_id = SHAREPOINT_TENANT_ID
+        self.client_id = os.environ.get("SHAREPOINT_CLIENT_ID")
+        self.client_secret = os.environ.get("SHAREPOINT_CLIENT_SECRET")
+        self.tenant_id = os.environ.get("SHAREPOINT_TENANT_ID")
+        self.site_hostname = os.environ.get("SHAREPOINT_SITE_HOSTNAME", "")
+        self.site_relative_path = os.environ.get("SHAREPOINT_SITE_RELATIVE_PATH", "")
+
+        missing = [
+            name
+            for name, val in [
+                ("SHAREPOINT_CLIENT_ID", self.client_id),
+                ("SHAREPOINT_CLIENT_SECRET", self.client_secret),
+                ("SHAREPOINT_TENANT_ID", self.tenant_id),
+                ("SHAREPOINT_SITE_HOSTNAME", self.site_hostname),
+                ("SHAREPOINT_SITE_RELATIVE_PATH", self.site_relative_path),
+            ]
+            if not val
+        ]
+        if missing:
+            raise RuntimeError(
+                "SharePointClient cannot start — missing env vars: " + ", ".join(missing)
+            )
+
         self.session = requests.Session()
         self.session.proxies = {
             "http": os.environ.get("HTTP_PROXY"),
-            "https": os.environ.get("HTTPS_PROXYy"),
+            "https": os.environ.get("HTTPS_PROXY"),
         }
         self.access_token = self.get_access_token()
         self.site_id = self.get_site_id(
-            site_hostname="groupebpce.sharepoint.com",
-            site_relative_path=SITE_RELATIVE_PATH,
+            site_hostname=self.site_hostname,
+            site_relative_path=self.site_relative_path,
         )
 
     def get_access_token(self) -> str:
@@ -140,41 +153,6 @@ class SharePointClient:
         items = response.json().get("value", [])
         files = [item["name"] for item in items if item.get("file")]
         return files
-
-    # @st.cache_data(show_spinner=False)
-    def read_binary_file(self, path: str) -> bytes:
-        """Reads a binary file from a SharePoint site using Microsoft Graph API.
-
-        Args:
-            path (str): The relative path to the file in the SharePoint site.
-
-        Returns:
-            bytes: The binary content of the file.
-        """
-        url = f"https://graph.microsoft.com/v1.0/sites/{self.site_id}/drive/root:/{path}:/content"
-        headers = {"Authorization": f"Bearer {self.access_token}"}
-
-        response = self.session.get(url, headers=headers)
-        response.raise_for_status()
-        return response.content
-
-    def save_binary_in_sharepoint(self, binary_data: bytes, path: str) -> None:
-        """Saves a binary file to a specified path in SharePoint.
-
-        Args:
-            binary_data (bytes): The binary content of the file to be saved.
-            path (str): The path in SharePoint where the file will be saved.
-
-        Raises:
-            requests.exceptions.HTTPError: If the HTTP request to save the file fails.
-        """
-        url = f"https://graph.microsoft.com/v1.0/sites/{self.site_id}/drive/root:/{path}:/content"
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-        }
-        response = self.session.put(url, headers=headers, data=binary_data)
-        response.raise_for_status()
-        # st.session_state.logger.info(f"Binary file successfully saved in SharePoint: {path}")
 
     # @st.cache_data(show_spinner=False)
     def folder_exists_in_sharepoint(self, folder_path: str) -> bool:
@@ -311,18 +289,14 @@ class SharePointClient:
         return response.content
 
     def read_excel_file_as_dict(self, binary_content):
-        # Écrire le contenu binaire dans un fichier temporaire
-        with open("temp.xlsx", "wb") as f:
-            f.write(binary_content)
-
-        # Charger le fichier Excel
-        workbook = openpyxl.load_workbook("temp.xlsx")
+        # Charger le fichier Excel directement depuis le buffer mémoire
+        workbook = openpyxl.load_workbook(BytesIO(binary_content))
         sheet = workbook.active  # Obtenir la première feuille de calcul
 
         # Lire les données de la feuille
         headers = [cell.value for cell in sheet[1]]  # Lire la première ligne comme entêtes
         data = []
-        
+
         for row in sheet.iter_rows(min_row=2, values_only=True):  # Ignorer la première ligne
             row_dict = {headers[i]: row[i] for i in range(len(headers))}
             data.append(row_dict)
@@ -406,22 +380,19 @@ class SharePointClient:
         return self.save_binary_in_sharepoint(binary_data, path, get_link)
 
 if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) < 2:
+        print("Usage: python sharepoint_connector.py <relative/path/to/file.xlsx>")
+        sys.exit(1)
+
     client = SharePointClient()
-    
-    file_path = "PowerBI x AI/BOAT/glossaire_boat.xlsx"  
+    file_path = sys.argv[1]
 
     try:
-        # Lire le fichier binaire
         binary_content = client.read_binary_file(file_path)
-
-        # Lire le contenu du fichier Excel
         excel_data = client.read_excel_file_as_dict(binary_content)
-
-
-        # Afficher les données lues
         df = pd.DataFrame(excel_data)
         print(df)
-        print(df.to_dict(orient='records'))
-    
     except Exception as e:
         print(f"An error occurred: {e}")

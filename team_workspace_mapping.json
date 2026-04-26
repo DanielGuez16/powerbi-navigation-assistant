@@ -1,6 +1,0 @@
-{
-    "BOAT": ["BPCESA - NXHCC - ALM BOAT (Prod)", "BPCESA - NXHCC - GRL (Production)", "NATIXIS - NXIMO - APAC ALM", "NATIXIS - NXM32 - Buffer DashBoard", "BPCESA - NXHCC - LE Guarantee", "NATIXIS - NXV69 - Global Treasury Power Bi Dashboard"],
-    "FDS" : [],
-    "Data Management" : ["BPCESA - NXDJO - Data Management - Prod","BPCESA - NXDJO - Data Management - Bench","BPCESA - NXDJO - Data Management - Dev"],
-    "Autre" : ["BPCEVIE - IZD - Pilotage EVD - PROD", "BPCESA - NXHCC - ALM BOAT (Prod)", "BPCESA - NXHCC - GRL (Production)","BPCESA - NXDJO - Data Management - Prod","BPCESA - NXDJO - Data Management - Bench","BPCESA - NXDJO - Data Management - Dev"]
-}

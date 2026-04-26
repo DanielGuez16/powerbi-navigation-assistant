@@ -1,0 +1,102 @@
+[
+  {
+    "workspace": "Finance - Treasury Dashboards",
+    "report": "Cash Flow Forecast",
+    "report_url": "https://app.powerbi.com/groups/00000000-0000-0000-0000-000000000001/reports/11111111-1111-1111-1111-111111111101",
+    "pages": [
+      { "name": "Overview" },
+      { "name": "Daily Liquidity" },
+      { "name": "Maturity Ladder" },
+      { "name": "Concentration Risk" },
+      { "name": "Counterparty Exposure" }
+    ]
+  },
+  {
+    "workspace": "Finance - Treasury Dashboards",
+    "report": "Funding & Liquidity",
+    "report_url": "https://app.powerbi.com/groups/00000000-0000-0000-0000-000000000001/reports/11111111-1111-1111-1111-111111111102",
+    "pages": [
+      { "name": "Funding Sources" },
+      { "name": "LCR Decomposition" },
+      { "name": "NSFR Decomposition" },
+      { "name": "Stress Scenarios" }
+    ]
+  },
+  {
+    "workspace": "Finance - Treasury Dashboards",
+    "report": "Short-Term Debt Outstandings",
+    "report_url": "https://app.powerbi.com/groups/00000000-0000-0000-0000-000000000001/reports/11111111-1111-1111-1111-111111111103",
+    "pages": [
+      { "name": "Aggregate by Limit" },
+      { "name": "Aggregate by Currency" },
+      { "name": "Historical by Issuer" },
+      { "name": "Historical by Product" },
+      { "name": "Issuance Calendar" }
+    ]
+  },
+  {
+    "workspace": "Finance - ALM",
+    "report": "Interest Rate Risk",
+    "report_url": "https://app.powerbi.com/groups/00000000-0000-0000-0000-000000000002/reports/11111111-1111-1111-1111-111111111201",
+    "pages": [
+      { "name": "Repricing Gap" },
+      { "name": "Duration Analysis" },
+      { "name": "EVE Sensitivity" },
+      { "name": "NII Projection" }
+    ]
+  },
+  {
+    "workspace": "Finance - ALM",
+    "report": "Balance Sheet Composition",
+    "report_url": "https://app.powerbi.com/groups/00000000-0000-0000-0000-000000000002/reports/11111111-1111-1111-1111-111111111202",
+    "pages": [
+      { "name": "Assets Breakdown" },
+      { "name": "Liabilities Breakdown" },
+      { "name": "Equity Movements" },
+      { "name": "Off-Balance-Sheet Items" }
+    ]
+  },
+  {
+    "workspace": "Data Management - Catalog",
+    "report": "Data Quality Monitoring",
+    "report_url": "https://app.powerbi.com/groups/00000000-0000-0000-0000-000000000003/reports/11111111-1111-1111-1111-111111111301",
+    "pages": [
+      { "name": "Quality KPIs" },
+      { "name": "Anomaly Detection" },
+      { "name": "Source System Health" },
+      { "name": "Issue Backlog" }
+    ]
+  },
+  {
+    "workspace": "Data Management - Catalog",
+    "report": "Lineage Explorer",
+    "report_url": "https://app.powerbi.com/groups/00000000-0000-0000-0000-000000000003/reports/11111111-1111-1111-1111-111111111302",
+    "pages": [
+      { "name": "Upstream Lineage" },
+      { "name": "Downstream Lineage" },
+      { "name": "Critical Data Elements" }
+    ]
+  },
+  {
+    "workspace": "Sales - Performance",
+    "report": "Sales Pipeline",
+    "report_url": "https://app.powerbi.com/groups/00000000-0000-0000-0000-000000000004/reports/11111111-1111-1111-1111-111111111401",
+    "pages": [
+      { "name": "Funnel Overview" },
+      { "name": "Win/Loss Analysis" },
+      { "name": "Opportunity Aging" },
+      { "name": "Forecast vs Actuals" }
+    ]
+  },
+  {
+    "workspace": "Operations - SLA Monitoring",
+    "report": "Service Level Dashboard",
+    "report_url": "https://app.powerbi.com/groups/00000000-0000-0000-0000-000000000005/reports/11111111-1111-1111-1111-111111111501",
+    "pages": [
+      { "name": "SLA Attainment" },
+      { "name": "Incident Volume" },
+      { "name": "Resolution Time" },
+      { "name": "Top Offenders" }
+    ]
+  }
+]

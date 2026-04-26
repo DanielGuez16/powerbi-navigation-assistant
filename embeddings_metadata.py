@@ -1,45 +1,59 @@
+"""Bootstrap script: builds metadata_embeddings.npy + metadata_entries.pkl
+from data/metadata.json by calling the embeddings API for each report page.
+
+Run once after metadata.json is in place:
+    python embeddings_metadata.py
+"""
 import json
-import numpy as np
 import os
-from embeddings_connector import EMBEDDINGConnector
 import pickle
 
-# Charger les métadonnées
-with open("data/metadata.json", "r", encoding="utf-8") as f:
-    metadata = json.load(f)
-                         
-# Initialiser le connecteur d'embeddings
-embedding_connector = EMBEDDINGConnector()
+import numpy as np
 
-# Construire les textes à embedder
-entries = []
-textes = []
-for item in metadata:
-    workspace = item["workspace"]
-    report = item["report"]
-    report_url = item["report_url"]
-    for page in item["pages"]:
-        entry = {
-            "workspace": workspace,
-            "report": report,
-            "report_url": report_url,
-            "page": page["name"]
-        }
-        entries.append(entry)
-        textes.append(f"Report : '{report}', Page : '{page}'")
+from embeddings_connector import EMBEDDINGConnector
 
-# Embedder les textes en utilisant la méthode generate_embeddings
-embeddings = []
-for text in textes:
-    embedding = embedding_connector.generate_embeddings(text=text)
-    embeddings.append(embedding)
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+METADATA_PATH = os.path.join(DATA_DIR, "metadata.json")
+EMBEDDINGS_PATH = os.path.join(DATA_DIR, "metadata_embeddings.npy")
+ENTRIES_PATH = os.path.join(DATA_DIR, "metadata_entries.pkl")
 
-# Convertir les embeddings en tableau NumPy
-embeddings = np.array(embeddings)
 
-# Sauvegarder les embeddings et les métadonnées associées
-np.save("data/metadata_embeddings.npy", embeddings)
-with open("data/metadata_entries.pkl", "wb") as f:
-    pickle.dump(entries, f)
+def main() -> None:
+    with open(METADATA_PATH, "r", encoding="utf-8") as f:
+        metadata = json.load(f)
 
-print("Embeddings generated and saved successfully.")
+    embedding_connector = EMBEDDINGConnector()
+
+    entries: list[dict] = []
+    textes: list[str] = []
+    for item in metadata:
+        workspace = item["workspace"]
+        report = item["report"]
+        report_url = item["report_url"]
+        for page in item["pages"]:
+            page_name = page["name"]
+            entries.append(
+                {
+                    "workspace": workspace,
+                    "report": report,
+                    "report_url": report_url,
+                    "page": page_name,
+                }
+            )
+            textes.append(f"Report : '{report}', Page : '{page_name}'")
+
+    embeddings = []
+    for text in textes:
+        embeddings.append(embedding_connector.generate_embeddings(text=text))
+    embeddings_arr = np.array(embeddings)
+
+    os.makedirs(DATA_DIR, exist_ok=True)
+    np.save(EMBEDDINGS_PATH, embeddings_arr)
+    with open(ENTRIES_PATH, "wb") as f:
+        pickle.dump(entries, f)
+
+    print(f"✅ {len(embeddings)} embeddings generated and saved to {DATA_DIR}.")
+
+
+if __name__ == "__main__":
+    main()

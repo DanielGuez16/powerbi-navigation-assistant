@@ -1,22 +1,28 @@
-import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys
 
-import numpy as np
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 import json
 import pickle
+
+import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-from utils.llm_connector import LLMConnector
+from llm_connector import LLMConnector
+from prompt_pbi import generate_prompt, generate_prompt_rag
+from prompt_finance import prompt_finance
+from prompt_free import generate_prompt_free
+from prompts import prompts
+from embeddings_connector import EMBEDDINGConnector
+
 llm = LLMConnector()
-
-from utils.prompt_pbi import generate_prompt, generate_prompt_rag
-from utils.prompt_finance import prompt_finance
-from utils.prompt_free import generate_prompt_free
-from front.src.prompts import prompts
-
-from utils.embeddings_connector import EMBEDDINGConnector
 embedding_connector = EMBEDDINGConnector()
+
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+METADATA_PATH = os.path.join(DATA_DIR, "metadata.json")
+EMBEDDINGS_PATH = os.path.join(DATA_DIR, "metadata_embeddings.npy")
+ENTRIES_PATH = os.path.join(DATA_DIR, "metadata_entries.pkl")
 
 
 # Filtrer les métadonnées en fonction de l'équipe choisie
@@ -93,11 +99,23 @@ def build_report_link_map(enriched_data):
         if entry.get("report_url")
     }
 
-def load_metadata(path="data/metadata.json"):
+def load_metadata(path=METADATA_PATH):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
-    
-metadata = load_metadata()
+
+
+def _safe_load_metadata():
+    try:
+        return load_metadata()
+    except FileNotFoundError:
+        print(f"⚠ metadata file not found at {METADATA_PATH} — returning empty list")
+        return []
+    except json.JSONDecodeError as e:
+        print(f"⚠ metadata file at {METADATA_PATH} is malformed: {e} — returning empty list")
+        return []
+
+
+metadata = _safe_load_metadata()
 
 def build_metadata_embeddings_from_pages(data):
     """
@@ -139,16 +157,28 @@ def build_metadata_embeddings_from_pages(data):
     print(f"✅ {len(all_embeddings)} pages traitées et embeddings sauvegardés.")
 
 
-embeddings_path="data/metadata_embeddings.npy"
-metadata_path="data/metadata_entries.pkl"
-
-# Chargement
-metadata_embeddings = np.load(embeddings_path)
-with open(metadata_path, "rb") as f:
-    metadata_entries = pickle.load(f)
+embeddings_path = EMBEDDINGS_PATH
+metadata_path = ENTRIES_PATH
 
 
-def get_top_k_pages(query, k, metadata_embeddings=metadata_embeddings, metadata_entries=metadata_entries):
+def _safe_load_embeddings():
+    """Lazy-load the embeddings + entries; return (None, None) if absent."""
+    if not (os.path.exists(embeddings_path) and os.path.exists(metadata_path)):
+        print(
+            f"⚠ embeddings not found at {embeddings_path}/{metadata_path} — "
+            "run `python embeddings_metadata.py` to generate them."
+        )
+        return None, None
+    embs = np.load(embeddings_path)
+    with open(metadata_path, "rb") as f:
+        entries = pickle.load(f)
+    return embs, entries
+
+
+metadata_embeddings, metadata_entries = _safe_load_embeddings()
+
+
+def get_top_k_pages(query, k, metadata_embeddings=None, metadata_entries=None):
     """
     Description de ta fonction: Récupère les k meilleures pages correspondant à une requête
     query : Requête utilisateur pour laquelle trouver les pages les plus pertinentes
@@ -177,7 +207,7 @@ def get_top_k_pages(query, k, metadata_embeddings=metadata_embeddings, metadata_
     return top_k_results
 
 # Smart search with AI API and Embedding API calls
-def ask_iagen_rag(query, model='gpt-4o-2024-08-06', k=50,  intro = prompts["BOAT"]["intro"] , instructions = prompts["BOAT"]["instructions"], metadata_embeddings=metadata_embeddings, metadata_entries=metadata_entries):
+def ask_iagen_rag(query, model='gpt-4o-2024-08-06', k=50,  intro = prompts["Finance"]["intro"], instructions=prompts["Finance"]["instructions"], metadata_embeddings=metadata_embeddings, metadata_entries=metadata_entries):
     """
     Description de ta fonction: Effectue une recherche intelligente en utilisant une API AI et des appels d'embedding
     query : Requête utilisateur à traiter
@@ -219,7 +249,7 @@ def ask_iagen_rag(query, model='gpt-4o-2024-08-06', k=50,  intro = prompts["BOAT
     return response
 
 # General question about finance
-def ask_iagen(query, model='gpt-4o-2024-08-06', intro = prompts["natixis_bpce_assistant"]["intro"] , instructions = prompts["natixis_bpce_assistant"]["instructions"]):
+def ask_iagen(query, model='gpt-4o-2024-08-06', intro = prompts["general_assistant"]["intro"], instructions=prompts["general_assistant"]["instructions"]):
     """
     Description de ta fonction: Traite une question générale sur les finances
     query : Requête utilisateur à traiter
@@ -240,7 +270,7 @@ def ask_iagen(query, model='gpt-4o-2024-08-06', intro = prompts["natixis_bpce_as
     return response
 
 # Smart search with AI API call only
-def ask_iagen_naive(query, model='gpt-4o-2024-08-06', intro = prompts["BOAT"]["intro"] , instructions = prompts["BOAT"]["instructions"], data = metadata):
+def ask_iagen_naive(query, model='gpt-4o-2024-08-06', intro = prompts["Finance"]["intro"], instructions=prompts["Finance"]["instructions"], data = metadata):
         
     """Description de ta fonction: Effectue une recherche simple en utilisant uniquement les appels API AI
     query : Requête utilisateur à traiter
@@ -278,18 +308,18 @@ def ask_iagen_naive(query, model='gpt-4o-2024-08-06', intro = prompts["BOAT"]["i
 
 
 # Potential future function to analyze financial data (dans le cas où on aurait les données Power BI)
-def ask_iagen_finance(query, model='gpt-4o-2024-08-06', intro = prompts["BOAT"]["intro"] , instructions = prompts["BOAT"]["instructions"]):
+def ask_iagen_finance(query, model='gpt-4o-2024-08-06', intro = prompts["Finance"]["intro"], instructions=prompts["Finance"]["instructions"]):
     metadata = load_metadata()
 
     top_matches = []
     for entry in metadata:
         workspace = entry["workspace"]
         report = entry["report"]
-        for page in entry["page"]:
+        for page in entry["pages"]:
             top_matches.append(
                 {"workspace": workspace,
                  "report": report,
-                 "page":page
+                 "page": page["name"]
                  })
             
 
